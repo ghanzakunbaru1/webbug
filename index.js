@@ -1811,9 +1811,9 @@ app.use(express.static('public'));
 function requireAuth(req, res, next) {
   const username = req.cookies.sessionUser;
   
-  // Jika tidak ada session, redirect ke login
+  // Jika tidak ada session, redirect ke index
   if (!username) {
-    return res.redirect("/login?msg=Silakan login terlebih dahulu");
+    return res.redirect("/index?msg=Silakan index terlebih dahulu");
   }
   
   // Cek apakah user ada dan belum expired
@@ -1821,11 +1821,11 @@ function requireAuth(req, res, next) {
   const currentUser = users.find(u => u.username === username);
   
   if (!currentUser) {
-    return res.redirect("/login?msg=User tidak ditemukan");
+    return res.redirect("/index?msg=User tidak ditemukan");
   }
   
   if (Date.now() > currentUser.expired) {
-    return res.redirect("/login?msg=Session expired, login ulang");
+    return res.redirect("/index?msg=Session expired, index ulang");
   }
   
   // Jika semua pengecekan lolos, lanjut ke route
@@ -1833,18 +1833,18 @@ function requireAuth(req, res, next) {
 }
 
 app.get("/", (req, res) => {
-  const filePath = path.join(__dirname, "Login.html");
+  const filePath = path.join(__dirname, "index.html");
   fs.readFile(filePath, "utf8", (err, html) => {
-    if (err) return res.status(500).send("✗ Gagal baca Login.html");
+    if (err) return res.status(500).send("✗ Gagal baca index.html");
     res.send(html);
   });
 });
 
-app.get("/login", (req, res) => {
+app.get("/index", (req, res) => {
   const msg = req.query.msg || "";
-  const filePath = path.join(__dirname, "Login.html");
+  const filePath = path.join(__dirname, "index.html");
   fs.readFile(filePath, "utf8", (err, html) => {
-    if (err) return res.status(500).send("✗ Gagal baca file Login.html");
+    if (err) return res.status(500).send("✗ Gagal baca file index.html");
     res.send(html);
   });
 });
@@ -1855,7 +1855,7 @@ app.post("/auth", (req, res) => {
 
   const user = users.find(u => u.username === username && u.key === key);
   if (!user) {
-    return res.redirect("/login?msg=" + encodeURIComponent("Username atau Key salah!"));
+    return res.redirect("/index?msg=" + encodeURIComponent("Username atau Key salah!"));
   }
 
   res.cookie("sessionUser", username, { maxAge: 60 * 60 * 1000 });
@@ -1866,7 +1866,7 @@ app.post("/auth", (req, res) => {
 app.get('/dashboard', (req, res) => {
     const username = req.cookies.sessionUser;
     if (!username) {
-        return res.redirect('/login');
+        return res.redirect('/index');
     }
     res.sendFile(path.join(__dirname, 'INDICTIVE', 'dashboard.html'));
 });
@@ -1941,13 +1941,13 @@ app.get("/execution", async (req, res) => {
     const username = req.cookies.sessionUser;
     console.log(`[INFO] Execution accessed by user: ${username}`);
     
-    const filePath = "./INDICTIVE/Login.html";
+    const filePath = "./INDICTIVE/index.html";
     const html = await fs.promises.readFile(filePath, "utf8").catch(err => {
-      return res.status(500).send("✗ Gagal baca file Login.html");
+      return res.status(500).send("✗ Gagal baca file index.html");
     });
 
     if (!username) {
-      console.log(`[INFO] No username, redirecting to login`);
+      console.log(`[INFO] No username, redirecting to index`);
       return res.send(html);
     }
 
@@ -2290,7 +2290,7 @@ app.get("/nsfw-anime", requireAuth, (req, res) => {
     res.send(html);
   });
 });
-// Route untuk TikTok (HANYA bisa diakses setelah login)
+// Route untuk TikTok (HANYA bisa diakses setelah index)
 app.get("/tt", requireAuth, (req, res) => {
   const filePath = path.join(__dirname, "tiktok.html");
   fs.readFile(filePath, "utf8", (err, html) => {
@@ -2555,7 +2555,7 @@ app.post("/api/delete-sender", requireAuth, async (req, res) => {
 
 app.get("/logout", (req, res) => {
   res.clearCookie("sessionUser");
-  res.redirect("/login");
+  res.redirect("/index");
 });
 
 app.listen(PORT, () => {
